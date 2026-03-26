@@ -1,0 +1,1007 @@
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plano de Melhorias — Design Content</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f0efe9;
+    --border: #e2e0d8; --border2: #d0cec4;
+    --text: #1a1917; --text2: #6b6860; --text3: #a09e97;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 32px 24px; font-size: 14px; line-height: 1.5; }
+  .container { max-width: 980px; margin: 0 auto; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
+  .header-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .header-sub { font-size: 13px; color: var(--text2); }
+  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* Buttons */
+  .btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--surface); color: var(--text); cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn:hover { background: var(--surface2); }
+  .btn-primary { background: var(--text); color: #fff; border-color: var(--text); }
+  .btn-primary:hover { background: #333; }
+  .btn-ghost { background: transparent; border-color: transparent; color: var(--text2); }
+  .btn-ghost:hover { background: var(--surface2); border-color: var(--border); color: var(--text); }
+
+  /* Progress */
+  .progress-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .progress-stat { text-align: center; min-width: 56px; }
+  .progress-stat .num { font-size: 26px; font-weight: 600; letter-spacing: -1px; font-family: 'DM Mono', monospace; }
+  .progress-stat .lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1px; }
+  .progress-divider { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
+  .progress-bar-wrap { flex: 1; min-width: 160px; }
+  .progress-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .progress-bar-track { height: 5px; background: var(--border); border-radius: 3px; }
+  .progress-bar-fill { height: 5px; border-radius: 3px; background: var(--text); transition: width .4s ease; }
+
+  /* View toggle */
+  .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; width: fit-content; }
+  .view-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 6px 16px; border: none; border-right: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all .15s; }
+  .view-btn:last-child { border-right: none; }
+  .view-btn.active { background: var(--text); color: #fff; }
+  .view-btn:hover:not(.active) { background: var(--surface2); color: var(--text); }
+
+  /* Filter bar */
+  .filter-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); cursor: pointer; transition: all .15s; }
+  .filter-btn:hover { background: var(--surface2); color: var(--text); }
+  .filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+  /* Legend */
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── ROADMAP ── */
+  .roadmap-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .quarter-col { display: flex; flex-direction: column; }
+  .quarter-header { padding: 12px 14px 10px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border: 1px solid var(--border); border-bottom: none; background: var(--surface); }
+  .quarter-header.current { background: #1a1917; }
+  .quarter-header.current .quarter-label,
+  .quarter-header.current .quarter-months,
+  .quarter-header.current .quarter-count { color: #fff; }
+  .quarter-header.current .quarter-months,
+  .quarter-header.current .quarter-count { opacity: .65; }
+  .quarter-label { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; font-family: 'DM Mono', monospace; }
+  .quarter-months { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .quarter-count { font-size: 11px; color: var(--text2); margin-top: 6px; }
+  .quarter-body { flex: 1; border: 1px solid var(--border); border-radius: 0 0 var(--radius-lg) var(--radius-lg); background: var(--surface2); padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 140px; }
+  .quarter-empty { font-size: 12px; color: var(--text3); text-align: center; padding: 24px 8px; }
+  .ev-card { border-radius: 6px; padding: 9px 10px; cursor: pointer; transition: filter .12s, transform .1s; border-left: 3px solid transparent; }
+  .ev-card:hover { filter: brightness(0.93); transform: translateY(-1px); }
+  .ev-backlog   { background: #dbeafe; border-left-color: #3b82f6; }
+  .ev-andamento { background: #fef9c3; border-left-color: #ca8a04; }
+  .ev-concluido { background: #dcfce7; border-left-color: #16a34a; }
+  .ev-pausado   { background: #fee2e2; border-left-color: #dc2626; }
+  .ev-title { font-size: 12px; font-weight: 600; color: #111; line-height: 1.3; margin-bottom: 5px; }
+  .ev-meta { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .ev-cat { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; background: rgba(0,0,0,0.09); color: #333; }
+  .ev-prazo { font-size: 10px; color: #555; }
+
+  /* ── CARDS VIEW (versão anterior) ── */
+  .cards-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text2); margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .cards-section-title:first-child { margin-top: 0; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-bottom: 4px; }
+  .initiative-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; cursor: pointer; transition: box-shadow .15s, transform .1s; }
+  .initiative-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .card-title { font-weight: 500; font-size: 13px; color: var(--text); line-height: 1.35; flex: 1; }
+  .card-desc { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .card-quarter { font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text2); }
+  .card-prazo { font-size: 11px; color: var(--text3); }
+  .card-impact-wrap { display: flex; align-items: center; gap: 6px; }
+  .card-impact-label { font-size: 10px; color: var(--text3); }
+  .card-impact-bar { width: 48px; height: 3px; background: var(--border); border-radius: 2px; }
+  .card-impact-fill { height: 3px; border-radius: 2px; }
+  .card-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+  .initiative-card:hover .card-actions { opacity: 1; }
+
+  /* ── TABLE ── */
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+  .table-section-header { padding: 8px 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text2); background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .table-col-header { display: grid; grid-template-columns: 2.2fr 80px 130px 130px 70px; gap: 0; padding: 8px 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); border-bottom: 1px solid var(--border); }
+  .initiative-row { display: grid; grid-template-columns: 2.2fr 80px 130px 130px 70px; gap: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); align-items: center; transition: background .1s; }
+  .initiative-row:last-child { border-bottom: none; }
+  .initiative-row:hover { background: var(--surface2); }
+  .row-title { font-weight: 500; font-size: 13px; }
+  .row-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .impact-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 6px; max-width: 160px; }
+  .impact-fill { height: 3px; border-radius: 2px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 4px; font-family: 'DM Mono', monospace; }
+  .badge-backlog   { background: #dbeafe; color: #1e40af; }
+  .badge-andamento { background: #fef9c3; color: #854d0e; }
+  .badge-concluido { background: #dcfce7; color: #166534; }
+  .badge-pausado   { background: #fee2e2; color: #991b1b; }
+  .cat-pill { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 4px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); }
+  .row-actions { display: flex; gap: 4px; justify-content: flex-end; opacity: 0; transition: opacity .15s; }
+  .initiative-row:hover .row-actions { opacity: 1; }
+  .action-btn { font-size: 13px; width: 26px; height: 26px; border: none; background: transparent; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text2); transition: background .12s; }
+  .action-btn:hover { background: var(--border); color: var(--text); }
+  .empty-row { padding: 28px 16px; text-align: center; color: var(--text3); font-size: 13px; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex !important; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); width: 100%; max-width: 480px; padding: 24px; box-shadow: 0 8px 40px rgba(0,0,0,0.12); max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-input, .form-select, .form-textarea { font-family: 'DM Sans', sans-serif; font-size: 13px; width: 100%; padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text); outline: none; transition: border-color .15s; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--text); }
+  .form-textarea { resize: vertical; min-height: 64px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .range-row { display: flex; align-items: center; gap: 10px; }
+  .range-row input[type=range] { flex: 1; }
+  .range-val { font-family: 'DM Mono', monospace; font-size: 13px; min-width: 32px; text-align: right; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .export-note { font-size: 12px; color: var(--text3); margin-top: 12px; text-align: center; }
+
+  @media (max-width: 680px) {
+    .roadmap-grid { grid-template-columns: 1fr 1fr; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <div class="header-title">Plano de melhorias — Design Content</div>
+      <div class="header-sub" id="header-sub">7 iniciativas · 1 em andamento · 0 concluídas</div>
+    </div>
+    <div class="header-right">
+      <span id="sync-status" style="display: none; font-size: 12px; font-family: &quot;DM Mono&quot;, monospace; color: rgb(22, 101, 52);">Atualizado</span>
+      <button class="btn" onclick="openModal()">+ Adicionar</button>
+      <button class="btn btn-primary" onclick="exportHTML()">↓ Exportar</button>
+    </div>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-stat"><div class="num" id="stat-total">7</div><div class="lbl">Total</div></div>
+    <div class="progress-divider"></div>
+    <div class="progress-stat"><div class="num" id="stat-andamento">1</div><div class="lbl">Em andamento</div></div>
+    <div class="progress-divider"></div>
+    <div class="progress-stat"><div class="num" id="stat-concluido">0</div><div class="lbl">Concluídas</div></div>
+    <div class="progress-divider"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-label"><span>Progresso geral</span><span id="prog-pct">0%</span></div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-roadmap" onclick="setView('roadmap')">Roadmap</button>
+      <button class="view-btn" id="btn-cards" onclick="setView('cards')">Cards</button>
+      <button class="view-btn" id="btn-table" onclick="setView('table')">Tabela</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="filter-btn active" onclick="setFilter('all',this)">Todas</button>
+      <button class="filter-btn" onclick="setFilter('Ferramenta',this)">Ferramenta</button>
+      <button class="filter-btn" onclick="setFilter('Processo',this)">Processo</button>
+      <button class="filter-btn" onclick="setFilter('Backlog',this)">Backlog</button>
+      <button class="filter-btn" onclick="setFilter('Em andamento',this)">Em andamento</button>
+      <button class="filter-btn" onclick="setFilter('Concluído',this)">Concluído</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Backlog</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ca8a04"></div>Em andamento</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div>Concluído</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>Pausado</div>
+  </div>
+
+  <!-- ROADMAP -->
+  <div id="view-roadmap">
+    <div class="roadmap-grid" id="roadmap-grid"><div class="quarter-col">
+      <div class="quarter-header current">
+        <div class="quarter-label">Q1</div>
+        <div class="quarter-months">Jan · Fev · Mar</div>
+        <div class="quarter-count">1 iniciativa</div>
+      </div>
+      <div class="quarter-body">
+        
+          <div class="ev-card ev-andamento" onclick="editItem(1)">
+            <div class="ev-title">Loop para acompanhamento de iniciativas</div>
+            <div class="ev-meta">
+              <span class="ev-cat">Processo</span>
+              <span class="ev-prazo">Mar 2026</span>
+            </div>
+          </div>
+      </div>
+    </div><div class="quarter-col">
+      <div class="quarter-header">
+        <div class="quarter-label">Q2</div>
+        <div class="quarter-months">Abr · Mai · Jun</div>
+        <div class="quarter-count">4 iniciativas</div>
+      </div>
+      <div class="quarter-body">
+        
+          <div class="ev-card ev-backlog" onclick="editItem(2)">
+            <div class="ev-title">Categorização Assets vs Assets+</div>
+            <div class="ev-meta">
+              <span class="ev-cat">Processo</span>
+              <span class="ev-prazo">Abr 2026</span>
+            </div>
+          </div>
+          <div class="ev-card ev-backlog" onclick="editItem(3)">
+            <div class="ev-title">Atualização Kosmos Figma</div>
+            <div class="ev-meta">
+              <span class="ev-cat">Ferramenta</span>
+              <span class="ev-prazo">Mai 2026</span>
+            </div>
+          </div>
+          <div class="ev-card ev-backlog" onclick="editItem(4)">
+            <div class="ev-title">Revisão fluxo Motion / vídeo</div>
+            <div class="ev-meta">
+              <span class="ev-cat">Processo</span>
+              <span class="ev-prazo">Mai 2026</span>
+            </div>
+          </div>
+          <div class="ev-card ev-backlog" onclick="editItem(5)">
+            <div class="ev-title">PDFs e Ebooks nativos no AICS</div>
+            <div class="ev-meta">
+              <span class="ev-cat">Ferramenta</span>
+              <span class="ev-prazo">Jun 2026</span>
+            </div>
+          </div>
+      </div>
+    </div><div class="quarter-col">
+      <div class="quarter-header">
+        <div class="quarter-label">Q3</div>
+        <div class="quarter-months">Jul · Ago · Set</div>
+        <div class="quarter-count">2 iniciativas</div>
+      </div>
+      <div class="quarter-body">
+        
+          <div class="ev-card ev-backlog" onclick="editItem(6)">
+            <div class="ev-title">Banco de ícones via API Adobe Stock</div>
+            <div class="ev-meta">
+              <span class="ev-cat">Ferramenta</span>
+              <span class="ev-prazo">Jul 2026</span>
+            </div>
+          </div>
+          <div class="ev-card ev-backlog" onclick="editItem(7)">
+            <div class="ev-title">Imagens via API Adobe Stock + AICS</div>
+            <div class="ev-meta">
+              <span class="ev-cat">Ferramenta</span>
+              <span class="ev-prazo">Ago 2026</span>
+            </div>
+          </div>
+      </div>
+    </div><div class="quarter-col">
+      <div class="quarter-header">
+        <div class="quarter-label">Q4</div>
+        <div class="quarter-months">Out · Nov · Dez</div>
+        <div class="quarter-count">0 iniciativas</div>
+      </div>
+      <div class="quarter-body">
+        <div class="quarter-empty">Sem iniciativas</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- CARDS -->
+  <div id="view-cards" style="display:none">
+    <div id="cards-ferramenta-wrap">
+      <div class="cards-section-title">Ferramentas</div>
+      <div class="cards-grid" id="cards-ferramenta">
+    <div class="initiative-card" onclick="editItem(3)">
+      <div class="card-header">
+        <div class="card-title">Atualização Kosmos Figma</div>
+        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
+      </div>
+      <div class="card-desc">Variáveis e criação de temas no Content Studio (hoje feito manualmente pelos Devs)</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">Ferramenta</span>
+          <span class="card-quarter">Q2</span>
+          <span class="card-prazo">Mai 2026</span>
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:70%;background:#1e40af"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="initiative-card" onclick="editItem(5)">
+      <div class="card-header">
+        <div class="card-title">PDFs e Ebooks nativos no AICS</div>
+        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
+      </div>
+      <div class="card-desc">DE escreve conteúdo do e-book direto no AICS com mesmo visual do Setup, eliminando dependência do designer</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">Ferramenta</span>
+          <span class="card-quarter">Q2</span>
+          <span class="card-prazo">Jun 2026</span>
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:85%;background:#166534"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="initiative-card" onclick="editItem(6)">
+      <div class="card-header">
+        <div class="card-title">Banco de ícones via API Adobe Stock</div>
+        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
+      </div>
+      <div class="card-desc">Integração Adobe Stock + Content Studio para DE aplicar ícones no curso sem passar pelo designer</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">Ferramenta</span>
+          <span class="card-quarter">Q3</span>
+          <span class="card-prazo">Jul 2026</span>
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:80%;background:#166534"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="initiative-card" onclick="editItem(7)">
+      <div class="card-header">
+        <div class="card-title">Imagens via API Adobe Stock + AICS</div>
+        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
+      </div>
+      <div class="card-desc">DE aplica imagens diretamente no AICS com otimização automática; elimina etapa de PSD e grafismos manuais</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">Ferramenta</span>
+          <span class="card-quarter">Q3</span>
+          <span class="card-prazo">Ago 2026</span>
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:75%;background:#1e40af"></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    </div>
+    <div id="cards-processo-wrap">
+      <div class="cards-section-title">Processos</div>
+      <div class="cards-grid" id="cards-processo">
+    <div class="initiative-card" onclick="editItem(1)">
+      <div class="card-header">
+        <div class="card-title">Loop para acompanhamento de iniciativas</div>
+        <span class="badge badge-andamento" style="flex-shrink:0">Em andamento</span>
+      </div>
+      <div class="card-desc">Estrutura de visibilidade das iniciativas com Kanban, objetivos e histórico de progresso</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">Processo</span>
+          <span class="card-quarter">Q1</span>
+          <span class="card-prazo">Mar 2026</span>
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:50%;background:#1e40af"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="initiative-card" onclick="editItem(2)">
+      <div class="card-header">
+        <div class="card-title">Categorização Assets vs Assets+</div>
+        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
+      </div>
+      <div class="card-desc">Mapear e limitar por projeto: Assets simples vs Assets+ de maior esforço (ilustração, infográfico, visualização de dados)</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">Processo</span>
+          <span class="card-quarter">Q2</span>
+          <span class="card-prazo">Abr 2026</span>
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:90%;background:#166534"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="initiative-card" onclick="editItem(4)">
+      <div class="card-header">
+        <div class="card-title">Revisão fluxo Motion / vídeo</div>
+        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
+      </div>
+      <div class="card-desc">Padronizar atuação do Motion Designer a partir do PIV; reduzir dependência do design no fluxo de vídeo</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">Processo</span>
+          <span class="card-quarter">Q2</span>
+          <span class="card-prazo">Mai 2026</span>
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:65%;background:#1e40af"></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div id="view-table" style="display:none">
+    <div class="table-card">
+      <div class="table-col-header">
+        <span>Iniciativa</span><span>Categ.</span><span>Trimestre · Prazo</span><span>Status</span><span></span>
+      </div>
+      <div id="section-ferramentas">
+        <div class="table-section-header">Ferramentas</div>
+        <div id="rows-ferramenta">
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">Atualização Kosmos Figma</div>
+        <div class="row-sub">Variáveis e criação de temas no Content Studio (hoje feito manualmente pelos Devs)</div>
+        <div class="impact-bar"><div class="impact-fill" style="width:70%;background:#1e40af"></div></div>
+      </div>
+      <div><span class="cat-pill">Ferramenta</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
+        <br><span style="font-size:11px;color:var(--text3)">Mai 2026</span>
+      </div>
+      <div><span class="badge badge-backlog">Backlog</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(3)">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(3)" style="color:#991b1b">✕</button>
+      </div>
+    </div>
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">PDFs e Ebooks nativos no AICS</div>
+        <div class="row-sub">DE escreve conteúdo do e-book direto no AICS com mesmo visual do Setup, eliminando dependência do designer</div>
+        <div class="impact-bar"><div class="impact-fill" style="width:85%;background:#166534"></div></div>
+      </div>
+      <div><span class="cat-pill">Ferramenta</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
+        <br><span style="font-size:11px;color:var(--text3)">Jun 2026</span>
+      </div>
+      <div><span class="badge badge-backlog">Backlog</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(5)">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(5)" style="color:#991b1b">✕</button>
+      </div>
+    </div>
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">Banco de ícones via API Adobe Stock</div>
+        <div class="row-sub">Integração Adobe Stock + Content Studio para DE aplicar ícones no curso sem passar pelo designer</div>
+        <div class="impact-bar"><div class="impact-fill" style="width:80%;background:#166534"></div></div>
+      </div>
+      <div><span class="cat-pill">Ferramenta</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">Q3</span>
+        <br><span style="font-size:11px;color:var(--text3)">Jul 2026</span>
+      </div>
+      <div><span class="badge badge-backlog">Backlog</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(6)">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(6)" style="color:#991b1b">✕</button>
+      </div>
+    </div>
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">Imagens via API Adobe Stock + AICS</div>
+        <div class="row-sub">DE aplica imagens diretamente no AICS com otimização automática; elimina etapa de PSD e grafismos manuais</div>
+        <div class="impact-bar"><div class="impact-fill" style="width:75%;background:#1e40af"></div></div>
+      </div>
+      <div><span class="cat-pill">Ferramenta</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">Q3</span>
+        <br><span style="font-size:11px;color:var(--text3)">Ago 2026</span>
+      </div>
+      <div><span class="badge badge-backlog">Backlog</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(7)">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(7)" style="color:#991b1b">✕</button>
+      </div>
+    </div></div>
+      </div>
+      <div id="section-processos">
+        <div class="table-section-header">Processos</div>
+        <div id="rows-processo">
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">Loop para acompanhamento de iniciativas</div>
+        <div class="row-sub">Estrutura de visibilidade das iniciativas com Kanban, objetivos e histórico de progresso</div>
+        <div class="impact-bar"><div class="impact-fill" style="width:50%;background:#1e40af"></div></div>
+      </div>
+      <div><span class="cat-pill">Processo</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">Q1</span>
+        <br><span style="font-size:11px;color:var(--text3)">Mar 2026</span>
+      </div>
+      <div><span class="badge badge-andamento">Em andamento</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(1)">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(1)" style="color:#991b1b">✕</button>
+      </div>
+    </div>
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">Categorização Assets vs Assets+</div>
+        <div class="row-sub">Mapear e limitar por projeto: Assets simples vs Assets+ de maior esforço (ilustração, infográfico, visualização de dados)</div>
+        <div class="impact-bar"><div class="impact-fill" style="width:90%;background:#166534"></div></div>
+      </div>
+      <div><span class="cat-pill">Processo</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
+        <br><span style="font-size:11px;color:var(--text3)">Abr 2026</span>
+      </div>
+      <div><span class="badge badge-backlog">Backlog</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(2)">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(2)" style="color:#991b1b">✕</button>
+      </div>
+    </div>
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">Revisão fluxo Motion / vídeo</div>
+        <div class="row-sub">Padronizar atuação do Motion Designer a partir do PIV; reduzir dependência do design no fluxo de vídeo</div>
+        <div class="impact-bar"><div class="impact-fill" style="width:65%;background:#1e40af"></div></div>
+      </div>
+      <div><span class="cat-pill">Processo</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
+        <br><span style="font-size:11px;color:var(--text3)">Mai 2026</span>
+      </div>
+      <div><span class="badge badge-backlog">Backlog</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(4)">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(4)" style="color:#991b1b">✕</button>
+      </div>
+    </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="export-note">Exporte o HTML e suba no SharePoint para linkar no Loop.</div>
+</div>
+
+<!-- Auth helper -->
+<div id="auth-callback-store" style="display:none"></div>
+
+<!-- Auth modal -->
+<div class="modal-overlay" id="auth-modal" style="display:none;z-index:200">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title" style="font-size:15px;margin-bottom:6px">🔒 Confirmar alteração</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:18px">Digite a senha para salvar as alterações.</p>
+    <div class="form-group">
+      <label class="form-label">Senha</label>
+      <input class="form-input" id="auth-input" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="auth-error" style="display:none;font-size:12px;color:#991b1b;margin-top:-8px;margin-bottom:10px">
+      Senha incorreta. Tente novamente.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('auth-modal').classList.remove('open');document.getElementById('auth-modal').style.display='none'">Cancelar</button>
+      <button class="btn btn-primary" onclick="submitAuth()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Nova iniciativa</div>
+    <input type="hidden" id="edit-id" value="">
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="form-input" id="f-titulo" placeholder="Ex: Padronização de PDFs">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="f-desc" placeholder="Breve descrição da iniciativa"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-select" id="f-cat">
+          <option value="Ferramenta">Ferramenta</option>
+          <option value="Processo">Processo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="f-status">
+          <option value="Backlog">Backlog</option>
+          <option value="Em andamento">Em andamento</option>
+          <option value="Concluído">Concluído</option>
+          <option value="Pausado">Pausado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Trimestre</label>
+        <select class="form-select" id="f-quarter">
+          <option value="Q1">Q1 — Jan · Fev · Mar</option>
+          <option value="Q2">Q2 — Abr · Mai · Jun</option>
+          <option value="Q3">Q3 — Jul · Ago · Set</option>
+          <option value="Q4">Q4 — Out · Nov · Dez</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prazo alvo</label>
+        <input class="form-input" id="f-prazo" placeholder="Ex: Jun 2026">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Impacto esperado (0–100)</label>
+      <div class="range-row">
+        <input type="range" min="0" max="100" value="50" id="f-impacto" oninput="document.getElementById('impacto-val').textContent=this.value+'%'">
+        <span class="range-val" id="impacto-val">50%</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let data = [{"id":1,"titulo":"Loop para acompanhamento de iniciativas","desc":"Estrutura de visibilidade das iniciativas com Kanban, objetivos e histórico de progresso","cat":"Processo","status":"Em andamento","quarter":"Q1","prazo":"Mar 2026","impacto":50},{"id":2,"titulo":"Categorização Assets vs Assets+","desc":"Mapear e limitar por projeto: Assets simples vs Assets+ de maior esforço (ilustração, infográfico, visualização de dados)","cat":"Processo","status":"Backlog","quarter":"Q2","prazo":"Abr 2026","impacto":90},{"id":3,"titulo":"Atualização Kosmos Figma","desc":"Variáveis e criação de temas no Content Studio (hoje feito manualmente pelos Devs)","cat":"Ferramenta","status":"Backlog","quarter":"Q2","prazo":"Mai 2026","impacto":70},{"id":4,"titulo":"Revisão fluxo Motion / vídeo","desc":"Padronizar atuação do Motion Designer a partir do PIV; reduzir dependência do design no fluxo de vídeo","cat":"Processo","status":"Backlog","quarter":"Q2","prazo":"Mai 2026","impacto":65},{"id":5,"titulo":"PDFs e Ebooks nativos no AICS","desc":"DE escreve conteúdo do e-book direto no AICS com mesmo visual do Setup, eliminando dependência do designer","cat":"Ferramenta","status":"Backlog","quarter":"Q2","prazo":"Jun 2026","impacto":85},{"id":6,"titulo":"Banco de ícones via API Adobe Stock","desc":"Integração Adobe Stock + Content Studio para DE aplicar ícones no curso sem passar pelo designer","cat":"Ferramenta","status":"Backlog","quarter":"Q3","prazo":"Jul 2026","impacto":80},{"id":7,"titulo":"Imagens via API Adobe Stock + AICS","desc":"DE aplica imagens diretamente no AICS com otimização automática; elimina etapa de PSD e grafismos manuais","cat":"Ferramenta","status":"Backlog","quarter":"Q3","prazo":"Ago 2026","impacto":75}];
+let nextId = 8;
+let currentFilter = 'all';
+let currentView = 'roadmap';
+
+const QUARTERS = [
+  { key: 'Q1', months: 'Jan · Fev · Mar' },
+  { key: 'Q2', months: 'Abr · Mai · Jun' },
+  { key: 'Q3', months: 'Jul · Ago · Set' },
+  { key: 'Q4', months: 'Out · Nov · Dez' },
+];
+const CURRENT_Q = 'Q1';
+
+const statusEv     = { 'Backlog':'ev-backlog', 'Em andamento':'ev-andamento', 'Concluído':'ev-concluido', 'Pausado':'ev-pausado' };
+const statusBadge  = { 'Backlog':'badge-backlog', 'Em andamento':'badge-andamento', 'Concluído':'badge-concluido', 'Pausado':'badge-pausado' };
+const impactoColor = v => v >= 80 ? '#166534' : v >= 50 ? '#1e40af' : '#6b6860';
+
+function setView(v) {
+  currentView = v;
+  ['roadmap','cards','table'].forEach(id => {
+    document.getElementById('view-' + id).style.display = id === v ? '' : 'none';
+    document.getElementById('btn-' + id).classList.toggle('active', id === v);
+  });
+  render();
+}
+
+function visibleItems() {
+  if (currentFilter === 'all') return data;
+  return data.filter(d => d.cat === currentFilter || d.status === currentFilter);
+}
+
+function render() {
+  renderRoadmap();
+  renderCards();
+  renderTable();
+  updateStats();
+}
+
+/* ── ROADMAP ── */
+function renderRoadmap() {
+  const items = visibleItems();
+  document.getElementById('roadmap-grid').innerHTML = QUARTERS.map(q => {
+    const qi = items.filter(d => d.quarter === q.key);
+    return `<div class="quarter-col">
+      <div class="quarter-header${q.key === CURRENT_Q ? ' current' : ''}">
+        <div class="quarter-label">${q.key}</div>
+        <div class="quarter-months">${q.months}</div>
+        <div class="quarter-count">${qi.length} iniciativa${qi.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="quarter-body">
+        ${qi.length ? qi.map(item => `
+          <div class="ev-card ${statusEv[item.status]||'ev-backlog'}" onclick="editItem(${item.id})">
+            <div class="ev-title">${item.titulo}</div>
+            <div class="ev-meta">
+              <span class="ev-cat">${item.cat}</span>
+              ${item.prazo ? `<span class="ev-prazo">${item.prazo}</span>` : ''}
+            </div>
+          </div>`).join('') : '<div class="quarter-empty">Sem iniciativas</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── CARDS ── */
+function renderCards() {
+  const items = visibleItems();
+  const fItems = items.filter(d => d.cat === 'Ferramenta');
+  const pItems = items.filter(d => d.cat === 'Processo');
+  renderCardSection('cards-ferramenta', fItems);
+  renderCardSection('cards-processo', pItems);
+  document.getElementById('cards-ferramenta-wrap').style.display = fItems.length ? '' : 'none';
+  document.getElementById('cards-processo-wrap').style.display   = pItems.length ? '' : 'none';
+}
+
+function renderCardSection(id, items) {
+  const el = document.getElementById(id);
+  if (!items.length) { el.innerHTML = '<div class="empty-row">Nenhuma iniciativa.</div>'; return; }
+  el.innerHTML = items.map(item => `
+    <div class="initiative-card" onclick="editItem(${item.id})">
+      <div class="card-header">
+        <div class="card-title">${item.titulo}</div>
+        <span class="badge ${statusBadge[item.status]||'badge-backlog'}" style="flex-shrink:0">${item.status}</span>
+      </div>
+      ${item.desc ? `<div class="card-desc">${item.desc}</div>` : ''}
+      <div class="card-footer">
+        <div class="card-meta">
+          <span class="cat-pill">${item.cat}</span>
+          <span class="card-quarter">${item.quarter}</span>
+          ${item.prazo ? `<span class="card-prazo">${item.prazo}</span>` : ''}
+        </div>
+        <div class="card-impact-wrap">
+          <span class="card-impact-label">Impacto</span>
+          <div class="card-impact-bar">
+            <div class="card-impact-fill" style="width:${item.impacto}%;background:${impactoColor(item.impacto)}"></div>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ── TABLE ── */
+function renderTable() {
+  const items = visibleItems();
+  renderTableSection('rows-ferramenta', items.filter(d => d.cat === 'Ferramenta'));
+  renderTableSection('rows-processo',   items.filter(d => d.cat === 'Processo'));
+  document.getElementById('section-ferramentas').style.display = items.some(d => d.cat === 'Ferramenta') ? '' : 'none';
+  document.getElementById('section-processos').style.display   = items.some(d => d.cat === 'Processo')   ? '' : 'none';
+}
+
+function renderTableSection(id, items) {
+  const el = document.getElementById(id);
+  if (!items.length) { el.innerHTML = '<div class="empty-row">Nenhuma iniciativa.</div>'; return; }
+  el.innerHTML = items.map(item => `
+    <div class="initiative-row">
+      <div>
+        <div class="row-title">${item.titulo}</div>
+        ${item.desc ? `<div class="row-sub">${item.desc}</div>` : ''}
+        <div class="impact-bar"><div class="impact-fill" style="width:${item.impacto}%;background:${impactoColor(item.impacto)}"></div></div>
+      </div>
+      <div><span class="cat-pill">${item.cat}</span></div>
+      <div style="font-size:13px;color:var(--text2)">
+        <span style="font-family:'DM Mono',monospace;font-weight:500">${item.quarter}</span>
+        ${item.prazo ? `<br><span style="font-size:11px;color:var(--text3)">${item.prazo}</span>` : ''}
+      </div>
+      <div><span class="badge ${statusBadge[item.status]||'badge-backlog'}">${item.status}</span></div>
+      <div class="row-actions">
+        <button class="action-btn" onclick="event.stopPropagation();editItem(${item.id})">✎</button>
+        <button class="action-btn" onclick="event.stopPropagation();deleteItem(${item.id})" style="color:#991b1b">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ── STATS ── */
+function updateStats() {
+  const total = data.length;
+  const andamento = data.filter(d => d.status === 'Em andamento').length;
+  const concluido = data.filter(d => d.status === 'Concluído').length;
+  const pct = total ? Math.round((concluido / total) * 100) : 0;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-andamento').textContent = andamento;
+  document.getElementById('stat-concluido').textContent = concluido;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('header-sub').textContent =
+    `${total} iniciativa${total !== 1 ? 's' : ''} · ${andamento} em andamento · ${concluido} concluída${concluido !== 1 ? 's' : ''}`;
+}
+
+/* ── FILTER ── */
+function setFilter(val, btn) {
+  currentFilter = val;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+/* ── JSONBIN CONFIG ── */
+const API_KEY  = '\$2a\$10\$DUY5PktjmO.u.CaAqE4kxeEN6EnLamDEKmt4BnHj1zJQnsH0hvvBq';
+const BIN_NAME = 'plano-melhorias-design-content';
+let   BIN_ID   = localStorage.getItem('dmcplan_bin_id') || '';
+
+function showStatus(msg, ok) {
+  const el = document.getElementById('sync-status');
+  el.textContent = msg;
+  el.style.color = ok === false ? '#991b1b' : ok === true ? '#166534' : '#6b6860';
+  el.style.display = 'inline';
+  if (ok !== null) setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+async function loadData() {
+  showStatus('Carregando...', null);
+  try {
+    if (!BIN_ID) {
+      // Nenhum bin ainda — cria um novo
+      const res = await fetch('https://api.jsonbin.io/v3/b', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Access-Key': API_KEY,
+          'X-Bin-Name': BIN_NAME,
+          'X-Private': 'false'
+        },
+        body: JSON.stringify({ data, nextId })
+      });
+      const json = await res.json();
+      BIN_ID = json.metadata.id;
+      localStorage.setItem('dmcplan_bin_id', BIN_ID);
+      showStatus('Pronto', true);
+      return;
+    }
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: { 'X-Access-Key': API_KEY }
+    });
+    const json = await res.json();
+    if (json.record && Array.isArray(json.record.data)) {
+      data   = json.record.data;
+      nextId = json.record.nextId || (Math.max(...data.map(d => d.id)) + 1);
+    }
+    showStatus('Atualizado', true);
+  } catch(e) {
+    showStatus('Erro ao carregar dados', false);
+  }
+}
+
+async function saveData() {
+  showStatus('Salvando...', null);
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Key': API_KEY
+      },
+      body: JSON.stringify({ data, nextId })
+    });
+    if (!res.ok) throw new Error();
+    showStatus('Salvo ✓', true);
+  } catch(e) {
+    showStatus('Erro ao salvar', false);
+  }
+}
+
+/* ── AUTH ── */
+const _h = '64f32dd79f99a6c0c246b4f83153de8fdd77776c9e6d756b73e40e5e0c53530a';
+async function _hash(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+let _pendingCallback = null;
+
+function requireAuthToSave(callback) {
+  _pendingCallback = callback;
+  document.getElementById('auth-modal').classList.add('open');
+  document.getElementById('auth-input').value = '';
+  document.getElementById('auth-error').style.display = 'none';
+  setTimeout(() => document.getElementById('auth-input').focus(), 80);
+}
+
+async function submitAuth() {
+  const val  = document.getElementById('auth-input').value;
+  const hash = await _hash(val);
+  if (hash === _h) {
+    document.getElementById('auth-modal').classList.remove('open');
+    if (_pendingCallback) { const cb = _pendingCallback; _pendingCallback = null; cb(); }
+  } else {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('auth-input').value = '';
+    document.getElementById('auth-input').focus();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('auth-modal').classList.contains('open')) return;
+  if (e.key === 'Enter')  submitAuth();
+  if (e.key === 'Escape') {
+    document.getElementById('auth-modal').classList.remove('open');
+    _pendingCallback = null;
+  }
+});
+
+/* ── MODAL ── */
+function openModal(item = null) {
+  document.getElementById('modal-title').textContent = item ? 'Editar iniciativa' : 'Nova iniciativa';
+  document.getElementById('edit-id').value   = item ? item.id : '';
+  document.getElementById('f-titulo').value  = item ? item.titulo : '';
+  document.getElementById('f-desc').value    = item ? item.desc : '';
+  document.getElementById('f-cat').value     = item ? item.cat : 'Ferramenta';
+  document.getElementById('f-status').value  = item ? item.status : 'Backlog';
+  document.getElementById('f-quarter').value = item ? item.quarter : 'Q1';
+  document.getElementById('f-prazo').value   = item ? item.prazo : '';
+  document.getElementById('f-impacto').value = item ? item.impacto : 50;
+  document.getElementById('impacto-val').textContent = (item ? item.impacto : 50) + '%';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-titulo').focus(), 50);
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function saveItem() {
+  const id   = document.getElementById('edit-id').value;
+  const item = {
+    titulo:  document.getElementById('f-titulo').value.trim(),
+    desc:    document.getElementById('f-desc').value.trim(),
+    cat:     document.getElementById('f-cat').value,
+    status:  document.getElementById('f-status').value,
+    quarter: document.getElementById('f-quarter').value,
+    prazo:   document.getElementById('f-prazo').value.trim(),
+    impacto: parseInt(document.getElementById('f-impacto').value),
+  };
+  if (!item.titulo) { document.getElementById('f-titulo').focus(); return; }
+
+  requireAuthToSave(async () => {
+    if (id) {
+      const idx = data.findIndex(d => d.id == id);
+      if (idx !== -1) data[idx] = { ...data[idx], ...item };
+    } else {
+      data.push({ id: nextId++, ...item });
+    }
+    closeModal();
+    render();
+    await saveData();
+  });
+}
+
+function editItem(id) {
+  const item = data.find(d => d.id === id);
+  if (item) openModal(item);
+}
+
+function deleteItem(id) {
+  requireAuthToSave(async () => {
+    if (!confirm('Remover esta iniciativa?')) return;
+    data = data.filter(d => d.id !== id);
+    render();
+    await saveData();
+  });
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+/* ── EXPORT ── */
+function exportHTML() {
+  const html = document.documentElement.outerHTML
+    .replace(/let data = \[[\s\S]*?\];/, `let data = ${JSON.stringify(data)};`)
+    .replace(/let nextId = \d+;/, `let nextId = ${nextId};`);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  a.download = 'plano-melhorias-design-content.html';
+  a.click();
+}
+
+/* ── INIT ── */
+(async () => {
+  await loadData();
+  render();
+})();
+</script>
+
+
+</body></html>
