@@ -1,4 +1,6 @@
-<html lang="pt-BR"><head>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plano de Melhorias — Design Content</title>
@@ -71,8 +73,14 @@
   .quarter-count { font-size: 11px; color: var(--text2); margin-top: 6px; }
   .quarter-body { flex: 1; border: 1px solid var(--border); border-radius: 0 0 var(--radius-lg) var(--radius-lg); background: var(--surface2); padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 140px; }
   .quarter-empty { font-size: 12px; color: var(--text3); text-align: center; padding: 24px 8px; }
-  .ev-card { border-radius: 6px; padding: 9px 10px; cursor: pointer; transition: filter .12s, transform .1s; border-left: 3px solid transparent; }
+  .ev-card { border-radius: 6px; padding: 9px 10px; cursor: grab; transition: filter .12s, transform .1s, opacity .15s; border-left: 3px solid transparent; user-select: none; }
   .ev-card:hover { filter: brightness(0.93); transform: translateY(-1px); }
+  .ev-card.dragging { opacity: 0.35; cursor: grabbing; transform: scale(0.97); }
+  .ev-card.drag-over-above { border-top: 2px solid #3b82f6; margin-top: -2px; }
+  .ev-card.drag-over-below { border-bottom: 2px solid #3b82f6; }
+  .quarter-body.drag-over { background: #eff6ff; outline: 2px dashed #93c5fd; outline-offset: -4px; }
+  .drag-hint { font-size: 10px; color: var(--text3); text-align: center; padding: 2px 0 4px; letter-spacing: 0.03em; font-style: italic; display: none; }
+  .roadmap-grid:hover .drag-hint { display: block; }
   .ev-backlog   { background: #dbeafe; border-left-color: #3b82f6; }
   .ev-andamento { background: #fef9c3; border-left-color: #ca8a04; }
   .ev-concluido { background: #dcfce7; border-left-color: #16a34a; }
@@ -141,6 +149,10 @@
   .range-val { font-family: 'DM Mono', monospace; font-size: 13px; min-width: 32px; text-align: right; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
   .export-note { font-size: 12px; color: var(--text3); margin-top: 12px; text-align: center; }
+  .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; gap: 14px; }
+  .loading-spinner { width: 32px; height: 32px; border: 2.5px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--text2); }
 
   @media (max-width: 680px) {
     .roadmap-grid { grid-template-columns: 1fr 1fr; }
@@ -149,24 +161,29 @@
 </style>
 </head>
 <body>
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Carregando iniciativas...</div>
+</div>
+
 <div class="container">
 
   <div class="header">
     <div>
       <div class="header-title">Plano de melhorias — Design Content</div>
-      <div class="header-sub" id="header-sub">7 iniciativas · 1 em andamento · 0 concluídas</div>
+      <div class="header-sub" id="header-sub">Carregando...</div>
     </div>
     <div class="header-right">
-      <span id="sync-status" style="display: none; font-size: 12px; font-family: &quot;DM Mono&quot;, monospace; color: rgb(22, 101, 52);">Atualizado</span>
+      <span id="sync-status" style="display:none;font-size:12px;font-family:'DM Mono',monospace"></span>
       <button class="btn" onclick="openModal()">+ Adicionar</button>
       <button class="btn btn-primary" onclick="exportHTML()">↓ Exportar</button>
     </div>
   </div>
 
   <div class="progress-card">
-    <div class="progress-stat"><div class="num" id="stat-total">7</div><div class="lbl">Total</div></div>
+    <div class="progress-stat"><div class="num" id="stat-total">0</div><div class="lbl">Total</div></div>
     <div class="progress-divider"></div>
-    <div class="progress-stat"><div class="num" id="stat-andamento">1</div><div class="lbl">Em andamento</div></div>
+    <div class="progress-stat"><div class="num" id="stat-andamento">0</div><div class="lbl">Em andamento</div></div>
     <div class="progress-divider"></div>
     <div class="progress-stat"><div class="num" id="stat-concluido">0</div><div class="lbl">Concluídas</div></div>
     <div class="progress-divider"></div>
@@ -179,8 +196,8 @@
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
     <div class="view-toggle">
       <button class="view-btn active" id="btn-roadmap" onclick="setView('roadmap')">Roadmap</button>
-      <button class="view-btn" id="btn-cards" onclick="setView('cards')">Cards</button>
-      <button class="view-btn" id="btn-table" onclick="setView('table')">Tabela</button>
+      <button class="view-btn" id="btn-cards"   onclick="setView('cards')">Cards</button>
+      <button class="view-btn" id="btn-table"   onclick="setView('table')">Tabela</button>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
       <button class="filter-btn active" onclick="setFilter('all',this)">Todas</button>
@@ -201,243 +218,18 @@
 
   <!-- ROADMAP -->
   <div id="view-roadmap">
-    <div class="roadmap-grid" id="roadmap-grid"><div class="quarter-col">
-      <div class="quarter-header current">
-        <div class="quarter-label">Q1</div>
-        <div class="quarter-months">Jan · Fev · Mar</div>
-        <div class="quarter-count">1 iniciativa</div>
-      </div>
-      <div class="quarter-body">
-        
-          <div class="ev-card ev-andamento" onclick="editItem(1)">
-            <div class="ev-title">Loop para acompanhamento de iniciativas</div>
-            <div class="ev-meta">
-              <span class="ev-cat">Processo</span>
-              <span class="ev-prazo">Mar 2026</span>
-            </div>
-          </div>
-      </div>
-    </div><div class="quarter-col">
-      <div class="quarter-header">
-        <div class="quarter-label">Q2</div>
-        <div class="quarter-months">Abr · Mai · Jun</div>
-        <div class="quarter-count">4 iniciativas</div>
-      </div>
-      <div class="quarter-body">
-        
-          <div class="ev-card ev-backlog" onclick="editItem(2)">
-            <div class="ev-title">Categorização Assets vs Assets+</div>
-            <div class="ev-meta">
-              <span class="ev-cat">Processo</span>
-              <span class="ev-prazo">Abr 2026</span>
-            </div>
-          </div>
-          <div class="ev-card ev-backlog" onclick="editItem(3)">
-            <div class="ev-title">Atualização Kosmos Figma</div>
-            <div class="ev-meta">
-              <span class="ev-cat">Ferramenta</span>
-              <span class="ev-prazo">Mai 2026</span>
-            </div>
-          </div>
-          <div class="ev-card ev-backlog" onclick="editItem(4)">
-            <div class="ev-title">Revisão fluxo Motion / vídeo</div>
-            <div class="ev-meta">
-              <span class="ev-cat">Processo</span>
-              <span class="ev-prazo">Mai 2026</span>
-            </div>
-          </div>
-          <div class="ev-card ev-backlog" onclick="editItem(5)">
-            <div class="ev-title">PDFs e Ebooks nativos no AICS</div>
-            <div class="ev-meta">
-              <span class="ev-cat">Ferramenta</span>
-              <span class="ev-prazo">Jun 2026</span>
-            </div>
-          </div>
-      </div>
-    </div><div class="quarter-col">
-      <div class="quarter-header">
-        <div class="quarter-label">Q3</div>
-        <div class="quarter-months">Jul · Ago · Set</div>
-        <div class="quarter-count">2 iniciativas</div>
-      </div>
-      <div class="quarter-body">
-        
-          <div class="ev-card ev-backlog" onclick="editItem(6)">
-            <div class="ev-title">Banco de ícones via API Adobe Stock</div>
-            <div class="ev-meta">
-              <span class="ev-cat">Ferramenta</span>
-              <span class="ev-prazo">Jul 2026</span>
-            </div>
-          </div>
-          <div class="ev-card ev-backlog" onclick="editItem(7)">
-            <div class="ev-title">Imagens via API Adobe Stock + AICS</div>
-            <div class="ev-meta">
-              <span class="ev-cat">Ferramenta</span>
-              <span class="ev-prazo">Ago 2026</span>
-            </div>
-          </div>
-      </div>
-    </div><div class="quarter-col">
-      <div class="quarter-header">
-        <div class="quarter-label">Q4</div>
-        <div class="quarter-months">Out · Nov · Dez</div>
-        <div class="quarter-count">0 iniciativas</div>
-      </div>
-      <div class="quarter-body">
-        <div class="quarter-empty">Sem iniciativas</div>
-      </div>
-    </div></div>
+    <div class="roadmap-grid" id="roadmap-grid"></div>
   </div>
 
   <!-- CARDS -->
   <div id="view-cards" style="display:none">
     <div id="cards-ferramenta-wrap">
       <div class="cards-section-title">Ferramentas</div>
-      <div class="cards-grid" id="cards-ferramenta">
-    <div class="initiative-card" onclick="editItem(3)">
-      <div class="card-header">
-        <div class="card-title">Atualização Kosmos Figma</div>
-        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
-      </div>
-      <div class="card-desc">Variáveis e criação de temas no Content Studio (hoje feito manualmente pelos Devs)</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          <span class="cat-pill">Ferramenta</span>
-          <span class="card-quarter">Q2</span>
-          <span class="card-prazo">Mai 2026</span>
-        </div>
-        <div class="card-impact-wrap">
-          <span class="card-impact-label">Impacto</span>
-          <div class="card-impact-bar">
-            <div class="card-impact-fill" style="width:70%;background:#1e40af"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="initiative-card" onclick="editItem(5)">
-      <div class="card-header">
-        <div class="card-title">PDFs e Ebooks nativos no AICS</div>
-        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
-      </div>
-      <div class="card-desc">DE escreve conteúdo do e-book direto no AICS com mesmo visual do Setup, eliminando dependência do designer</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          <span class="cat-pill">Ferramenta</span>
-          <span class="card-quarter">Q2</span>
-          <span class="card-prazo">Jun 2026</span>
-        </div>
-        <div class="card-impact-wrap">
-          <span class="card-impact-label">Impacto</span>
-          <div class="card-impact-bar">
-            <div class="card-impact-fill" style="width:85%;background:#166534"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="initiative-card" onclick="editItem(6)">
-      <div class="card-header">
-        <div class="card-title">Banco de ícones via API Adobe Stock</div>
-        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
-      </div>
-      <div class="card-desc">Integração Adobe Stock + Content Studio para DE aplicar ícones no curso sem passar pelo designer</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          <span class="cat-pill">Ferramenta</span>
-          <span class="card-quarter">Q3</span>
-          <span class="card-prazo">Jul 2026</span>
-        </div>
-        <div class="card-impact-wrap">
-          <span class="card-impact-label">Impacto</span>
-          <div class="card-impact-bar">
-            <div class="card-impact-fill" style="width:80%;background:#166534"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="initiative-card" onclick="editItem(7)">
-      <div class="card-header">
-        <div class="card-title">Imagens via API Adobe Stock + AICS</div>
-        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
-      </div>
-      <div class="card-desc">DE aplica imagens diretamente no AICS com otimização automática; elimina etapa de PSD e grafismos manuais</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          <span class="cat-pill">Ferramenta</span>
-          <span class="card-quarter">Q3</span>
-          <span class="card-prazo">Ago 2026</span>
-        </div>
-        <div class="card-impact-wrap">
-          <span class="card-impact-label">Impacto</span>
-          <div class="card-impact-bar">
-            <div class="card-impact-fill" style="width:75%;background:#1e40af"></div>
-          </div>
-        </div>
-      </div>
-    </div></div>
+      <div class="cards-grid" id="cards-ferramenta"></div>
     </div>
     <div id="cards-processo-wrap">
       <div class="cards-section-title">Processos</div>
-      <div class="cards-grid" id="cards-processo">
-    <div class="initiative-card" onclick="editItem(1)">
-      <div class="card-header">
-        <div class="card-title">Loop para acompanhamento de iniciativas</div>
-        <span class="badge badge-andamento" style="flex-shrink:0">Em andamento</span>
-      </div>
-      <div class="card-desc">Estrutura de visibilidade das iniciativas com Kanban, objetivos e histórico de progresso</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          <span class="cat-pill">Processo</span>
-          <span class="card-quarter">Q1</span>
-          <span class="card-prazo">Mar 2026</span>
-        </div>
-        <div class="card-impact-wrap">
-          <span class="card-impact-label">Impacto</span>
-          <div class="card-impact-bar">
-            <div class="card-impact-fill" style="width:50%;background:#1e40af"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="initiative-card" onclick="editItem(2)">
-      <div class="card-header">
-        <div class="card-title">Categorização Assets vs Assets+</div>
-        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
-      </div>
-      <div class="card-desc">Mapear e limitar por projeto: Assets simples vs Assets+ de maior esforço (ilustração, infográfico, visualização de dados)</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          <span class="cat-pill">Processo</span>
-          <span class="card-quarter">Q2</span>
-          <span class="card-prazo">Abr 2026</span>
-        </div>
-        <div class="card-impact-wrap">
-          <span class="card-impact-label">Impacto</span>
-          <div class="card-impact-bar">
-            <div class="card-impact-fill" style="width:90%;background:#166534"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="initiative-card" onclick="editItem(4)">
-      <div class="card-header">
-        <div class="card-title">Revisão fluxo Motion / vídeo</div>
-        <span class="badge badge-backlog" style="flex-shrink:0">Backlog</span>
-      </div>
-      <div class="card-desc">Padronizar atuação do Motion Designer a partir do PIV; reduzir dependência do design no fluxo de vídeo</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          <span class="cat-pill">Processo</span>
-          <span class="card-quarter">Q2</span>
-          <span class="card-prazo">Mai 2026</span>
-        </div>
-        <div class="card-impact-wrap">
-          <span class="card-impact-label">Impacto</span>
-          <div class="card-impact-bar">
-            <div class="card-impact-fill" style="width:65%;background:#1e40af"></div>
-          </div>
-        </div>
-      </div>
-    </div></div>
+      <div class="cards-grid" id="cards-processo"></div>
     </div>
   </div>
 
@@ -449,130 +241,11 @@
       </div>
       <div id="section-ferramentas">
         <div class="table-section-header">Ferramentas</div>
-        <div id="rows-ferramenta">
-    <div class="initiative-row">
-      <div>
-        <div class="row-title">Atualização Kosmos Figma</div>
-        <div class="row-sub">Variáveis e criação de temas no Content Studio (hoje feito manualmente pelos Devs)</div>
-        <div class="impact-bar"><div class="impact-fill" style="width:70%;background:#1e40af"></div></div>
-      </div>
-      <div><span class="cat-pill">Ferramenta</span></div>
-      <div style="font-size:13px;color:var(--text2)">
-        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
-        <br><span style="font-size:11px;color:var(--text3)">Mai 2026</span>
-      </div>
-      <div><span class="badge badge-backlog">Backlog</span></div>
-      <div class="row-actions">
-        <button class="action-btn" onclick="event.stopPropagation();editItem(3)">✎</button>
-        <button class="action-btn" onclick="event.stopPropagation();deleteItem(3)" style="color:#991b1b">✕</button>
-      </div>
-    </div>
-    <div class="initiative-row">
-      <div>
-        <div class="row-title">PDFs e Ebooks nativos no AICS</div>
-        <div class="row-sub">DE escreve conteúdo do e-book direto no AICS com mesmo visual do Setup, eliminando dependência do designer</div>
-        <div class="impact-bar"><div class="impact-fill" style="width:85%;background:#166534"></div></div>
-      </div>
-      <div><span class="cat-pill">Ferramenta</span></div>
-      <div style="font-size:13px;color:var(--text2)">
-        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
-        <br><span style="font-size:11px;color:var(--text3)">Jun 2026</span>
-      </div>
-      <div><span class="badge badge-backlog">Backlog</span></div>
-      <div class="row-actions">
-        <button class="action-btn" onclick="event.stopPropagation();editItem(5)">✎</button>
-        <button class="action-btn" onclick="event.stopPropagation();deleteItem(5)" style="color:#991b1b">✕</button>
-      </div>
-    </div>
-    <div class="initiative-row">
-      <div>
-        <div class="row-title">Banco de ícones via API Adobe Stock</div>
-        <div class="row-sub">Integração Adobe Stock + Content Studio para DE aplicar ícones no curso sem passar pelo designer</div>
-        <div class="impact-bar"><div class="impact-fill" style="width:80%;background:#166534"></div></div>
-      </div>
-      <div><span class="cat-pill">Ferramenta</span></div>
-      <div style="font-size:13px;color:var(--text2)">
-        <span style="font-family:'DM Mono',monospace;font-weight:500">Q3</span>
-        <br><span style="font-size:11px;color:var(--text3)">Jul 2026</span>
-      </div>
-      <div><span class="badge badge-backlog">Backlog</span></div>
-      <div class="row-actions">
-        <button class="action-btn" onclick="event.stopPropagation();editItem(6)">✎</button>
-        <button class="action-btn" onclick="event.stopPropagation();deleteItem(6)" style="color:#991b1b">✕</button>
-      </div>
-    </div>
-    <div class="initiative-row">
-      <div>
-        <div class="row-title">Imagens via API Adobe Stock + AICS</div>
-        <div class="row-sub">DE aplica imagens diretamente no AICS com otimização automática; elimina etapa de PSD e grafismos manuais</div>
-        <div class="impact-bar"><div class="impact-fill" style="width:75%;background:#1e40af"></div></div>
-      </div>
-      <div><span class="cat-pill">Ferramenta</span></div>
-      <div style="font-size:13px;color:var(--text2)">
-        <span style="font-family:'DM Mono',monospace;font-weight:500">Q3</span>
-        <br><span style="font-size:11px;color:var(--text3)">Ago 2026</span>
-      </div>
-      <div><span class="badge badge-backlog">Backlog</span></div>
-      <div class="row-actions">
-        <button class="action-btn" onclick="event.stopPropagation();editItem(7)">✎</button>
-        <button class="action-btn" onclick="event.stopPropagation();deleteItem(7)" style="color:#991b1b">✕</button>
-      </div>
-    </div></div>
+        <div id="rows-ferramenta"></div>
       </div>
       <div id="section-processos">
         <div class="table-section-header">Processos</div>
-        <div id="rows-processo">
-    <div class="initiative-row">
-      <div>
-        <div class="row-title">Loop para acompanhamento de iniciativas</div>
-        <div class="row-sub">Estrutura de visibilidade das iniciativas com Kanban, objetivos e histórico de progresso</div>
-        <div class="impact-bar"><div class="impact-fill" style="width:50%;background:#1e40af"></div></div>
-      </div>
-      <div><span class="cat-pill">Processo</span></div>
-      <div style="font-size:13px;color:var(--text2)">
-        <span style="font-family:'DM Mono',monospace;font-weight:500">Q1</span>
-        <br><span style="font-size:11px;color:var(--text3)">Mar 2026</span>
-      </div>
-      <div><span class="badge badge-andamento">Em andamento</span></div>
-      <div class="row-actions">
-        <button class="action-btn" onclick="event.stopPropagation();editItem(1)">✎</button>
-        <button class="action-btn" onclick="event.stopPropagation();deleteItem(1)" style="color:#991b1b">✕</button>
-      </div>
-    </div>
-    <div class="initiative-row">
-      <div>
-        <div class="row-title">Categorização Assets vs Assets+</div>
-        <div class="row-sub">Mapear e limitar por projeto: Assets simples vs Assets+ de maior esforço (ilustração, infográfico, visualização de dados)</div>
-        <div class="impact-bar"><div class="impact-fill" style="width:90%;background:#166534"></div></div>
-      </div>
-      <div><span class="cat-pill">Processo</span></div>
-      <div style="font-size:13px;color:var(--text2)">
-        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
-        <br><span style="font-size:11px;color:var(--text3)">Abr 2026</span>
-      </div>
-      <div><span class="badge badge-backlog">Backlog</span></div>
-      <div class="row-actions">
-        <button class="action-btn" onclick="event.stopPropagation();editItem(2)">✎</button>
-        <button class="action-btn" onclick="event.stopPropagation();deleteItem(2)" style="color:#991b1b">✕</button>
-      </div>
-    </div>
-    <div class="initiative-row">
-      <div>
-        <div class="row-title">Revisão fluxo Motion / vídeo</div>
-        <div class="row-sub">Padronizar atuação do Motion Designer a partir do PIV; reduzir dependência do design no fluxo de vídeo</div>
-        <div class="impact-bar"><div class="impact-fill" style="width:65%;background:#1e40af"></div></div>
-      </div>
-      <div><span class="cat-pill">Processo</span></div>
-      <div style="font-size:13px;color:var(--text2)">
-        <span style="font-family:'DM Mono',monospace;font-weight:500">Q2</span>
-        <br><span style="font-size:11px;color:var(--text3)">Mai 2026</span>
-      </div>
-      <div><span class="badge badge-backlog">Backlog</span></div>
-      <div class="row-actions">
-        <button class="action-btn" onclick="event.stopPropagation();editItem(4)">✎</button>
-        <button class="action-btn" onclick="event.stopPropagation();deleteItem(4)" style="color:#991b1b">✕</button>
-      </div>
-    </div></div>
+        <div id="rows-processo"></div>
       </div>
     </div>
   </div>
@@ -651,7 +324,8 @@
     <div class="form-group">
       <label class="form-label">Impacto esperado (0–100)</label>
       <div class="range-row">
-        <input type="range" min="0" max="100" value="50" id="f-impacto" oninput="document.getElementById('impacto-val').textContent=this.value+'%'">
+        <input type="range" min="0" max="100" value="50" id="f-impacto"
+          oninput="document.getElementById('impacto-val').textContent=this.value+'%'">
         <span class="range-val" id="impacto-val">50%</span>
       </div>
     </div>
@@ -663,8 +337,8 @@
 </div>
 
 <script>
-let data = [{"id":1,"titulo":"Loop para acompanhamento de iniciativas","desc":"Estrutura de visibilidade das iniciativas com Kanban, objetivos e histórico de progresso","cat":"Processo","status":"Em andamento","quarter":"Q1","prazo":"Mar 2026","impacto":50},{"id":2,"titulo":"Categorização Assets vs Assets+","desc":"Mapear e limitar por projeto: Assets simples vs Assets+ de maior esforço (ilustração, infográfico, visualização de dados)","cat":"Processo","status":"Backlog","quarter":"Q2","prazo":"Abr 2026","impacto":90},{"id":3,"titulo":"Atualização Kosmos Figma","desc":"Variáveis e criação de temas no Content Studio (hoje feito manualmente pelos Devs)","cat":"Ferramenta","status":"Backlog","quarter":"Q2","prazo":"Mai 2026","impacto":70},{"id":4,"titulo":"Revisão fluxo Motion / vídeo","desc":"Padronizar atuação do Motion Designer a partir do PIV; reduzir dependência do design no fluxo de vídeo","cat":"Processo","status":"Backlog","quarter":"Q2","prazo":"Mai 2026","impacto":65},{"id":5,"titulo":"PDFs e Ebooks nativos no AICS","desc":"DE escreve conteúdo do e-book direto no AICS com mesmo visual do Setup, eliminando dependência do designer","cat":"Ferramenta","status":"Backlog","quarter":"Q2","prazo":"Jun 2026","impacto":85},{"id":6,"titulo":"Banco de ícones via API Adobe Stock","desc":"Integração Adobe Stock + Content Studio para DE aplicar ícones no curso sem passar pelo designer","cat":"Ferramenta","status":"Backlog","quarter":"Q3","prazo":"Jul 2026","impacto":80},{"id":7,"titulo":"Imagens via API Adobe Stock + AICS","desc":"DE aplica imagens diretamente no AICS com otimização automática; elimina etapa de PSD e grafismos manuais","cat":"Ferramenta","status":"Backlog","quarter":"Q3","prazo":"Ago 2026","impacto":75}];
-let nextId = 8;
+let data = [];
+let nextId = 1;
 let currentFilter = 'all';
 let currentView = 'roadmap';
 
@@ -702,28 +376,146 @@ function render() {
 }
 
 /* ── ROADMAP ── */
+let dragId = null;
+
 function renderRoadmap() {
   const items = visibleItems();
-  document.getElementById('roadmap-grid').innerHTML = QUARTERS.map(q => {
+  const grid  = document.getElementById('roadmap-grid');
+
+  grid.innerHTML = QUARTERS.map(q => {
     const qi = items.filter(d => d.quarter === q.key);
-    return `<div class="quarter-col">
+    return `
+    <div class="quarter-col">
       <div class="quarter-header${q.key === CURRENT_Q ? ' current' : ''}">
         <div class="quarter-label">${q.key}</div>
         <div class="quarter-months">${q.months}</div>
-        <div class="quarter-count">${qi.length} iniciativa${qi.length !== 1 ? 's' : ''}</div>
+        <div class="quarter-count" id="qcount-${q.key}">${qi.length} iniciativa${qi.length !== 1 ? 's' : ''}</div>
       </div>
-      <div class="quarter-body">
-        ${qi.length ? qi.map(item => `
-          <div class="ev-card ${statusEv[item.status]||'ev-backlog'}" onclick="editItem(${item.id})">
-            <div class="ev-title">${item.titulo}</div>
-            <div class="ev-meta">
-              <span class="ev-cat">${item.cat}</span>
-              ${item.prazo ? `<span class="ev-prazo">${item.prazo}</span>` : ''}
-            </div>
-          </div>`).join('') : '<div class="quarter-empty">Sem iniciativas</div>'}
+      <div class="quarter-body" id="qbody-${q.key}"
+        ondragover="onBodyDragOver(event,'${q.key}')"
+        ondragleave="onBodyDragLeave(event)"
+        ondrop="onBodyDrop(event,'${q.key}')">
+        <div class="drag-hint">arraste para mover</div>
+        ${qi.length
+          ? qi.map(item => buildEvCard(item)).join('')
+          : '<div class="quarter-empty" id="qempty-' + q.key + '">Sem iniciativas</div>'}
       </div>
     </div>`;
   }).join('');
+
+  attachDragListeners();
+}
+
+function buildEvCard(item) {
+  return `
+    <div class="ev-card ${statusEv[item.status]||'ev-backlog'}"
+      id="evcard-${item.id}"
+      data-id="${item.id}"
+      draggable="true"
+      onclick="handleCardClick(event,${item.id})"
+      ondragstart="onDragStart(event,${item.id})"
+      ondragend="onDragEnd(event)"
+      ondragover="onCardDragOver(event)"
+      ondragleave="onCardDragLeave(event)"
+      ondrop="onCardDrop(event,${item.id})">
+      <div class="ev-title">${item.titulo}</div>
+      <div class="ev-meta">
+        <span class="ev-cat">${item.cat}</span>
+        ${item.prazo ? `<span class="ev-prazo">${item.prazo}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function attachDragListeners() {}
+
+function handleCardClick(e, id) {
+  if (e._wasDrag) return;
+  editItem(id);
+}
+
+function onDragStart(e, id) {
+  dragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    const el = document.getElementById('evcard-' + id);
+    if (el) el.classList.add('dragging');
+  }, 0);
+}
+
+function onDragEnd(e) {
+  document.querySelectorAll('.ev-card').forEach(c => {
+    c.classList.remove('dragging','drag-over-above','drag-over-below');
+  });
+  document.querySelectorAll('.quarter-body').forEach(b => b.classList.remove('drag-over'));
+  dragId = null;
+}
+
+function onCardDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.ev-card').forEach(c => c.classList.remove('drag-over-above','drag-over-below'));
+  const rect = e.currentTarget.getBoundingClientRect();
+  const mid  = rect.top + rect.height / 2;
+  e.currentTarget.classList.add(e.clientY < mid ? 'drag-over-above' : 'drag-over-below');
+}
+
+function onCardDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over-above','drag-over-below');
+}
+
+function onCardDrop(e, targetId) {
+  e.preventDefault();
+  e.stopPropagation();
+  e._wasDrag = true;
+  if (!dragId || dragId === targetId) return;
+
+  const rect    = e.currentTarget.getBoundingClientRect();
+  const mid     = rect.top + rect.height / 2;
+  const before  = e.clientY < mid;
+
+  const dragItem   = data.find(d => d.id === dragId);
+  const targetItem = data.find(d => d.id === targetId);
+  if (!dragItem || !targetItem) return;
+
+  requireAuthToSave(async () => {
+    dragItem.quarter = targetItem.quarter;
+    data = data.filter(d => d.id !== dragId);
+    const targetIdx = data.findIndex(d => d.id === targetId);
+    data.splice(before ? targetIdx : targetIdx + 1, 0, dragItem);
+    render();
+    await saveData();
+  });
+}
+
+function onBodyDragOver(e, quarter) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.quarter-body').forEach(b => b.classList.remove('drag-over'));
+  document.getElementById('qbody-' + quarter).classList.add('drag-over');
+}
+
+function onBodyDragLeave(e) {
+  if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return;
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function onBodyDrop(e, quarter) {
+  e.preventDefault();
+  document.querySelectorAll('.quarter-body').forEach(b => b.classList.remove('drag-over'));
+  if (!dragId) return;
+
+  const dragItem = data.find(d => d.id === dragId);
+  if (!dragItem || dragItem.quarter === quarter) return;
+
+  const droppedOnCard = e.target.closest('.ev-card');
+  if (droppedOnCard) return;
+
+  requireAuthToSave(async () => {
+    dragItem.quarter = quarter;
+    render();
+    await saveData();
+  });
 }
 
 /* ── CARDS ── */
@@ -821,7 +613,7 @@ function setFilter(val, btn) {
 /* ── JSONBIN CONFIG ── */
 const API_KEY  = '\$2a\$10\$DUY5PktjmO.u.CaAqE4kxeEN6EnLamDEKmt4BnHj1zJQnsH0hvvBq';
 const BIN_NAME = 'plano-melhorias-design-content';
-let   BIN_ID   = localStorage.getItem('dmcplan_bin_id') || '';
+let   BIN_ID   = '69c52c52aa77b81da92043d1';
 
 function showStatus(msg, ok) {
   const el = document.getElementById('sync-status');
@@ -834,24 +626,6 @@ function showStatus(msg, ok) {
 async function loadData() {
   showStatus('Carregando...', null);
   try {
-    if (!BIN_ID) {
-      // Nenhum bin ainda — cria um novo
-      const res = await fetch('https://api.jsonbin.io/v3/b', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Access-Key': API_KEY,
-          'X-Bin-Name': BIN_NAME,
-          'X-Private': 'false'
-        },
-        body: JSON.stringify({ data, nextId })
-      });
-      const json = await res.json();
-      BIN_ID = json.metadata.id;
-      localStorage.setItem('dmcplan_bin_id', BIN_ID);
-      showStatus('Pronto', true);
-      return;
-    }
     const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
       headers: { 'X-Access-Key': API_KEY }
     });
@@ -999,9 +773,9 @@ function exportHTML() {
 /* ── INIT ── */
 (async () => {
   await loadData();
+  document.getElementById('loading-overlay').style.display = 'none';
   render();
 })();
 </script>
-
-
-</body></html>
+</body>
+</html>
