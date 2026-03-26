@@ -75,6 +75,7 @@
   .quarter-empty { font-size: 12px; color: var(--text3); text-align: center; padding: 24px 8px; }
   .ev-card { border-radius: 6px; padding: 9px 10px; cursor: grab; transition: filter .12s, transform .1s, opacity .15s; border-left: 3px solid transparent; user-select: none; }
   .ev-card:hover { filter: brightness(0.93); transform: translateY(-1px); }
+  .ev-card:hover .ev-delete-btn { opacity: 1 !important; }
   .ev-card.dragging { opacity: 0.35; cursor: grabbing; transform: scale(0.97); }
   .ev-card.drag-over-above { border-top: 2px solid #3b82f6; margin-top: -2px; }
   .ev-card.drag-over-below { border-bottom: 2px solid #3b82f6; }
@@ -418,7 +419,14 @@ function buildEvCard(item) {
       ondragover="onCardDragOver(event)"
       ondragleave="onCardDragLeave(event)"
       ondrop="onCardDrop(event,${item.id})">
-      <div class="ev-title">${item.titulo}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+        <div class="ev-title" style="flex:1">${item.titulo}</div>
+        <button onclick="event.stopPropagation();deleteItem(${item.id})" title="Excluir"
+          style="border:none;background:rgba(0,0,0,0.08);color:#555;border-radius:4px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;flex-shrink:0;opacity:0;transition:opacity .15s"
+          onmouseenter="this.style.opacity=1;this.style.background='#fee2e2';this.style.color='#991b1b'"
+          onmouseleave="this.style.opacity=0;this.style.background='rgba(0,0,0,0.08)';this.style.color='#555'"
+          class="ev-delete-btn">✕</button>
+      </div>
       <div class="ev-meta">
         <span class="ev-cat">${item.cat}</span>
         ${item.prazo ? `<span class="ev-prazo">${item.prazo}</span>` : ''}
@@ -536,7 +544,13 @@ function renderCardSection(id, items) {
     <div class="initiative-card" onclick="editItem(${item.id})">
       <div class="card-header">
         <div class="card-title">${item.titulo}</div>
-        <span class="badge ${statusBadge[item.status]||'badge-backlog'}" style="flex-shrink:0">${item.status}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span class="badge ${statusBadge[item.status]||'badge-backlog'}">${item.status}</span>
+          <button onclick="event.stopPropagation();deleteItem(${item.id})" title="Excluir"
+            style="border:none;background:transparent;color:var(--text3);border-radius:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .12s"
+            onmouseenter="this.style.background='#fee2e2';this.style.color='#991b1b'"
+            onmouseleave="this.style.background='transparent';this.style.color='var(--text3)'">✕</button>
+        </div>
       </div>
       ${item.desc ? `<div class="card-desc">${item.desc}</div>` : ''}
       <div class="card-footer">
